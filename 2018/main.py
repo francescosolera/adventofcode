@@ -139,11 +139,43 @@ def day7(input_file_path):
 
 def day8(input_file_path):
 	"""DAY 8 - ? LINES - https://adventofcode.com/2018/day/8
-
+	
 	
 	"""
-	
-	r1, r2 = None, None
+	data = [int(x) for x in open(input_file_path, 'r').read().split(' ')]
+
+	i = 0
+	nodes = [{'id': '0', 'c': 1, 'm': 0, 'd': 0}]
+	all_m = []
+	all_v = defaultdict(int)
+	while i < len(data):
+		if nodes[-1]['d'] < nodes[-1]['c']:
+			nodes[-1]['d'] += 1
+			nodes.append({'id': nodes[-1]['id'] + '.' + str(nodes[-1]['d']), 'c': data[i], 'm': data[i+1], 'd': 0})
+			i+=2
+		else:
+			m = data[i:i+nodes[-1]['m']]
+			all_v[nodes[-1]['id']] = sum(m) if nodes[-1]['c'] == 0 else sum([all_v[nodes[-1]['id']+'.'+str(i)] for i in m])
+
+			all_m.append(m)
+			i += nodes[-1]['m']
+			del nodes[-1]
+
+	#for y in all_m: print(y)
+	#print(all_v)
+
+	r1 = sum([x for y in all_m for x in y ])
+	r2 = all_v['0.1']
+
+
+
+	# 2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2
+	# A, 2, 3
+
+
+
+
+	#r1, r2 = None, None
 	return r1, r2
 
 
