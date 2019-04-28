@@ -1,5 +1,5 @@
 from itertools import cycle, product, chain
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, namedtuple, deque
 
 import numpy as np
 import re
@@ -138,44 +138,54 @@ def day7(input_file_path):
 
 
 def day8(input_file_path):
-	"""DAY 8 - ? LINES - https://adventofcode.com/2018/day/8
+	"""DAY 8 - 7 LINES - https://adventofcode.com/2018/day/8
 	
-	
+	This is a recursive solution.
+	The tree is built in a depth-first fashion where each node is a tuple of children (nodes) or meta values.
+	Once the tree is built, recursive functions can be called to explore values of the tree.
+	We also have an equally long iterative solution as follows.
+	The tree is built in a depth-first fashion (true condition of if).
+	As leaves are reached and the traversal goes upstream, each node with all its children explored (else condition of if)
+	gets a value computed as i) the sum of its meta and ii) the sum of the values of the children indexed by the meta.
+	To ease indexing, each node has an appending naming as follows: name-of-childer = name-of-parent + '.' + child_#
+	so that its value can get easily hashed out with the meta indexing of the parent.
+	# 1: 	i, all_m, all_v, nodes, data = 0, [], defaultdict(int), [{'id': '0', 'c': 1, 'm': 0, 'd': 0}], [int(x) for x in open(input_file_path, 'r').read().split(' ')]
+	# 2:	while i < len(data):
+	# 3:		if nodes[-1]['d'] < nodes[-1]['c']: nodes[-1]['d'], i, nodes = nodes[-1]['d'] + 1, i + 2, nodes + [{'id': nodes[-1]['id'] + '.' + str(nodes[-1]['d']+1), 'c': data[i], 'm': data[i+1], 'd': 0}]
+	# 4:		else:
+	# 5:			i, all_m, all_v[nodes[-1]['id']] = i + nodes[-1]['m'], all_m + [data[i:i+nodes[-1]['m']]], sum(data[i:i+nodes[-1]['m']]) if nodes[-1]['c'] == 0 else sum([all_v[nodes[-1]['id']+'.'+str(j)] for j in data[i:i+nodes[-1]['m']]])
+	# 6:			del nodes[-1]
+	# 7:	r1, r2 = sum([x for y in all_m for x in y]), all_v['0.1']
 	"""
-	data = [int(x) for x in open(input_file_path, 'r').read().split(' ')]
-
-	i = 0
-	nodes = [{'id': '0', 'c': 1, 'm': 0, 'd': 0}]
-	all_m = []
-	all_v = defaultdict(int)
-	while i < len(data):
-		if nodes[-1]['d'] < nodes[-1]['c']:
-			nodes[-1]['d'] += 1
-			nodes.append({'id': nodes[-1]['id'] + '.' + str(nodes[-1]['d']), 'c': data[i], 'm': data[i+1], 'd': 0})
-			i+=2
-		else:
-			m = data[i:i+nodes[-1]['m']]
-			all_v[nodes[-1]['id']] = sum(m) if nodes[-1]['c'] == 0 else sum([all_v[nodes[-1]['id']+'.'+str(i)] for i in m])
-
-			all_m.append(m)
-			i += nodes[-1]['m']
-			del nodes[-1]
-
-	#for y in all_m: print(y)
-	#print(all_v)
-
-	r1 = sum([x for y in all_m for x in y ])
-	r2 = all_v['0.1']
+	Tree, data = namedtuple('Tree', ['children', 'meta']), [int(x) for x in open(input_file_path, 'r').read().strip().split(' ')]
+	def tree(nums):
+		k, n = nums.popleft(), nums.popleft()
+		return Tree([tree(nums) for _ in range(k)], [nums.popleft() for _ in range(n)])
+	def sum_meta_r1(node): return sum(node.meta) + sum(map(sum_meta_r1, node.children))
+	def sum_meta_r2(node): return sum(node.meta) if not node.children else sum([sum_meta_r2(node.children[c-1]) for c in node.meta if c <= len(node.children)])
+	r1, r2 = sum_meta_r1(tree(deque(data))), sum_meta_r2(tree(deque(data)))
+	return r1, r2
 
 
+def day9(input_file_path):
+	"""DAY 9 - 10 LINES - https://adventofcode.com/2018/day/9
 
-	# 2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2
-	# A, 2, 3
-
-
-
-
-	#r1, r2 = None, None
+	If a function terminates without a return value, it returns None, as in def "next".
+	Such function returns the first element in the alphabet which is not done and not ongoing and has no
+	unresolved dependencies linking to it. Ongoing work can be defined as all tasks assigned to elves
+	and not found in o2. The line starting with "if next(" could be greatly simplified with assignment
+	expressions introduced in python 3.8 PEP 572.
+	"""
+	elves, o2, r1, r2, data = [{'t': '.', 'r': -1} for _ in range(5)], '.', '', -1, tuple(map(lambda x: re.search(r'Step (?P<a>\w+) must be finished before step (?P<b>\w+) can begin.', x).groupdict(), open(input_file_path, 'r')))
+	def next(done, ongoing):
+		for a in sorted(set([d for dd in data for d in dd.values()])-set(done)-set(ongoing)):
+			if sum(1 for x in data if x['b'] == a and x['a'] not in done) == 0: return a
+	while next(r1, '') is not None: r1 += next(r1, '')
+	while not all([e['t'] in o2 and e['t'] != '.' for e in elves]):
+		for e in [elf for elf in elves if elf['r'] == 0]: o2 += e['t']
+		for e in [elf for elf in elves if elf['t'] in o2]:
+			if next(o2, ''.join([e['t'] for e in elves if e['t'] not in o2])) is not None: e['t'], e['r'] = next(o2, ''.join([e['t'] for e in elves if e['t'] not in o2])), 60 + ord(next(o2, ''.join([e['t'] for e in elves if e['t'] not in o2]))) - ord('A') + 1
+		for e in elves: e['r'], r2 = e['r']-1, r2+1 if e == elves[-1] else r2
 	return r1, r2
 
 
@@ -187,4 +197,5 @@ if __name__ == "__main__":
 	# print('DAY 5: ' + str(day5('input_5.txt')))
 	# print('DAY 6: ' + str(day6('input_6.txt')))
 	# print('DAY 7: ' + str(day7('input_7.txt')))
-	print('DAY 8: ' + str(day8('input_8.txt')))
+	# print('DAY 8: ' + str(day8('input_8.txt')))
+	print('DAY 9: ' + str(day9('input_9.txt')))
