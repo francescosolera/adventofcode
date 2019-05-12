@@ -186,6 +186,26 @@ def day9(input_file_path):
 	return r1, r2
 
 
+def day10(input_file_path):
+	"""DAY 10 - ? LINES - https://adventofcode.com/2018/day/10
+	
+	Following the intuition/assumption of Peter Norvig (https://github.com/norvig/pytudes/blob/master/ipynb/Advent-2018.ipynb)
+	the proper alignment is such that the points fit in the smallest bounding box. Such an assumption works in practice.
+	What is written in the alignment is not automatically read from the coordinares, but print to screen.
+	"""
+	area, s, r1, r2, data = 1E20, '', None, 0, [{'x': int(el['x']), 'y': int(el['y']), 'vx': int(el['vx']), 'vy': int(el['vy'])} for el in map(lambda x: re.search(r'position=<(?P<x>[-, ]*\w+), (?P<y>[-, ]*\w+)> velocity=<(?P<vx>[-, ]*\w+), (?P<vy>[-, ]*\w+)>', x).groupdict(), open(input_file_path, 'r').readlines())]
+	def bbox(data): return min([el['x'] for el in data]), max([el['x'] for el in data]), min([el['y'] for el in data]), max([el['y'] for el in data])
+	while True:
+		xmin_, xmax_, ymin_, ymax_ = bbox([{'x': el['x']+el['vx'], 'y': el['y']+el['vy'], 'vx': el['vx'], 'vy': el['vy']} for el in data])
+		if (xmax_-xmin_)*(ymax_-ymin_) > area: break
+		r2, area, xmin, xmax, ymin, ymax, data = r2 + 1, (xmax_-xmin_)*(ymax_-ymin_), xmin_, xmax_, ymin_, ymax_, [{'x': el['x']+el['vx'], 'y': el['y']+el['vy'], 'vx': el['vx'], 'vy': el['vy']} for el in data]
+	for y in range(ymin, ymax + 1):
+		for x in range(xmin, xmax + 1): s += '#' if len([el for el in data if el['x'] == x and el['y'] == y]) else ' '
+		s += '\n'
+	print(s)
+	return r1, r2
+
+
 if __name__ == "__main__":
 	# print('DAY 1: ' + str(day1('input_1.txt')))
 	# print('DAY 2: ' + str(day2('input_2.txt')))
@@ -195,4 +215,5 @@ if __name__ == "__main__":
 	# print('DAY 6: ' + str(day6('input_6.txt')))
 	# print('DAY 7: ' + str(day7('input_7.txt')))
 	# print('DAY 8: ' + str(day8('input_8.txt')))
-	print('DAY 9: ' + str(day9('input_9.txt')))
+	# print('DAY 9: ' + str(day9('input_9.txt')))
+	print('DAY 10: ' + str(day10('input_10.txt')))
