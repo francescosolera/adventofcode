@@ -81,7 +81,7 @@ def day5(input_file_path):
 
 
 def day6(input_file_path):
-    """DAY 6 - 5 LINES - https://adventofcode.com/2021/day/6
+    """DAY 6 - 4 LINES - https://adventofcode.com/2021/day/6
     """
     r1, r2, data = 0, 0, [np.sum(np.array(list(map(int, open(input_file_path, 'r').read().split(",")))) == i).astype('int64') for i in range(9)]
     for day in range(256):
