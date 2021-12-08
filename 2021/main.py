@@ -99,6 +99,22 @@ def day7(input_file_path):
     return r1, r2
 
 
+def day8(input_file_path):
+    """DAY 8 - 10 LINES - https://adventofcode.com/2021/day/8
+    """
+    original, data = {'abcefg': 0, 'cf': 1, 'acdeg': 2, 'acdfg': 3, 'bcdf': 4, 'abdfg': 5, 'abdefg': 6, 'acf': 7, 'abcdefg': 8, 'abcdfg': 9}, list(map(lambda s: s.strip().replace(" |", "").split(" "), open(input_file_path, 'r')))
+    def get_chars_by_digit_length(entry, digit): return [x for x in entry if len(x) == {v: len(k) for k, v in original.items()}[digit]]
+    def get_chars_by_freq(entry, digit): return [k for k, v in Counter("".join(entry[:10])).items() if v == Counter("".join(list(original.keys())))[digit]]
+    r1, r2 = sum([len(get_chars_by_digit_length(entry[-4:], digit)) for entry in data for digit in [1, 4, 7, 8]]), 0
+    for entry in data:
+        dig = {k: set(get_chars_by_digit_length(entry[:10], k)[0]) for k in [1, 4, 7, 8]}
+        ch = {k: get_chars_by_freq(entry[:10], k)[0] for k in ['b', 'e', 'f']}
+        ch.update({'a': dig[7].difference(dig[1]).pop(), 'c': dig[1].difference(ch['f']).pop(), 'd': dig[4].difference(dig[7]).difference(ch['b']).pop(), 'g': dig[8].difference(dig[4]).difference(dig[7]).difference(ch['e']).pop()})
+        ch = {v: k for k, v in ch.items()}
+        r2 += sum([original["".join(sorted([ch[x] for x in entry[-i-1]]))] * (10 ** i) for i in range(4)])
+    return r1, r2
+
+
 if __name__ == "__main__":
     # print('DAY 1: ' + str(day1('input_1.txt')))
     # print('DAY 2: ' + str(day2('input_2.txt')))
@@ -106,4 +122,5 @@ if __name__ == "__main__":
     # print('DAY 4: ' + str(day4('input_4.txt')))
     # print('DAY 5: ' + str(day5('input_5.txt')))
     # print('DAY 6: ' + str(day6('input_6.txt')))
-    print('DAY 7: ' + str(day7('input_7.txt')))
+    # print('DAY 7: ' + str(day7('input_7.txt')))
+    print('DAY 8: ' + str(day8('input_8.txt')))
