@@ -107,11 +107,27 @@ def day8(input_file_path):
     def get_chars_by_freq(entry, digit): return [k for k, v in Counter("".join(entry[:10])).items() if v == Counter("".join(list(original.keys())))[digit]]
     r1, r2 = sum([len(get_chars_by_digit_length(entry[-4:], digit)) for entry in data for digit in [1, 4, 7, 8]]), 0
     for entry in data:
-        dig = {k: set(get_chars_by_digit_length(entry[:10], k)[0]) for k in [1, 4, 7, 8]}
+        dg = {k: set(get_chars_by_digit_length(entry[:10], k)[0]) for k in [1, 4, 7, 8]}
         ch = {k: get_chars_by_freq(entry[:10], k)[0] for k in ['b', 'e', 'f']}
-        ch.update({'a': dig[7].difference(dig[1]).pop(), 'c': dig[1].difference(ch['f']).pop(), 'd': dig[4].difference(dig[7]).difference(ch['b']).pop(), 'g': dig[8].difference(dig[4]).difference(dig[7]).difference(ch['e']).pop()})
+        ch.update({'a': dg[7].difference(dg[1]).pop(), 'c': dg[1].difference(ch['f']).pop(), 'd': dg[4].difference(dg[7]).difference(ch['b']).pop(), 'g': dg[8].difference(dg[4]).difference(dg[7]).difference(ch['e']).pop()})
         ch = {v: k for k, v in ch.items()}
         r2 += sum([original["".join(sorted([ch[x] for x in entry[-i-1]]))] * (10 ** i) for i in range(4)])
+    return r1, r2
+
+
+def day9(input_file_path):
+    """DAY 9 - 8 LINES - https://adventofcode.com/2021/day/9
+
+    In second step, use union (quick-find) to merge elements not split by a 9 and find connected components.
+    """
+    data = np.loadtxt(input_file_path, converters={0: lambda line: [int(x) for x in line.decode()]}, dtype=np.int)
+    h, w = data.shape
+    def get_neighbors(i, j): return list(set([(max(0, i-1), j), (min(h-1, i+1), j), (i, max(0, j-1)), (i, min(w-1, j+1))]).difference([(i, j)]))
+    r1 = sum([data[i, j] + 1 for i, j in [(i, j) for i, j in product(range(h), range(w)) if data[i, j] < min([data[ii, jj] for ii, jj in get_neighbors(i, j)])]])
+    idx = np.array([i for i in range(h * w)]).reshape((h, w))
+    for i, j in ((i_, j_) for i_, j_ in product(range(h), range(w)) if data[i_, j_] < 9):
+        for ii, jj in ((ii_, jj_) for ii_, jj_ in get_neighbors(i, j) if data[ii_, jj_] < 9): idx[idx == idx[i, j]] = idx[ii, jj]
+    r2 = np.prod([x[1] for x in Counter(idx.ravel()).most_common(3)])
     return r1, r2
 
 
@@ -123,4 +139,5 @@ if __name__ == "__main__":
     # print('DAY 5: ' + str(day5('input_5.txt')))
     # print('DAY 6: ' + str(day6('input_6.txt')))
     # print('DAY 7: ' + str(day7('input_7.txt')))
-    print('DAY 8: ' + str(day8('input_8.txt')))
+    # print('DAY 8: ' + str(day8('input_8.txt')))
+    print('DAY 9: ' + str(day9('input_9.txt')))
