@@ -131,6 +131,21 @@ def day9(input_file_path):
     return r1, r2
 
 
+def day10(input_file_path):
+    """DAY 10 - 9 LINES - https://adventofcode.com/2021/day/10
+    """
+    r1, r2, lifo, data, corr = 0, [], [], list(map(lambda line: [ch for ch in line.strip()], open(input_file_path, "r"))), {"(": ")", "[": "]", "{": "}", "<": ">"}
+    for line in data:
+        for i, char in enumerate(line):
+            if char in corr.keys(): lifo.append(char)
+            elif corr[lifo.pop()] != char:
+                r1, lifo = r1 + {")": 3, "]": 57, "}": 1197, ">": 25137}[char], []
+                break
+        if len(lifo) > 0: r2.append(sum([{"(": 1, "[": 2, "{": 3, "<": 4}[lifo.pop()] * (5 ** (len(lifo))) for _ in range(len(lifo))]))
+    r2 = sorted(r2)[len(r2) // 2]
+    return r1, r2
+
+
 if __name__ == "__main__":
     # print('DAY 1: ' + str(day1('input_1.txt')))
     # print('DAY 2: ' + str(day2('input_2.txt')))
@@ -140,4 +155,5 @@ if __name__ == "__main__":
     # print('DAY 6: ' + str(day6('input_6.txt')))
     # print('DAY 7: ' + str(day7('input_7.txt')))
     # print('DAY 8: ' + str(day8('input_8.txt')))
-    print('DAY 9: ' + str(day9('input_9.txt')))
+    # print('DAY 9: ' + str(day9('input_9.txt')))
+    print('DAY 10: ' + str(day10('input_10.txt')))
