@@ -146,6 +146,53 @@ def day10(input_file_path):
     return r1, r2
 
 
+def day11(input_file_path):
+    """DAY 11 - 10 LINES - https://adventofcode.com/2021/day/11
+    """
+    r1, r2, data = 0, 0, np.loadtxt(input_file_path, converters={0: lambda line: [v for v in line.decode()]}, dtype=np.int)
+    while np.any(data > 0):
+        data, checked, changed, r2 = data + 1, np.zeros_like(data), True, r2 + 1
+        while changed:
+            changed = False
+            for i, j in [(ii, jj) for ii, jj in product(range(data.shape[0]), range(data.shape[1])) if data[ii, jj] > 9 and checked[ii, jj] == 0]:
+                changed, checked[i, j], data[max(0, i - 1):i + 2, max(0, j - 1): j + 2] = True, checked[i, j] + 1, data[max(0, i - 1):i + 2, max(0, j - 1): j + 2] + 1
+                break
+        if r2 <= 100: r1 += np.sum(checked)
+        data[data > 9] = 0
+    return r1, r2
+
+
+def day12(input_file_path):
+    """DAY 12 - ? LINES - https://adventofcode.com/2021/day/12
+
+    really bad and unoptimized code; haven't found right data scruture yet
+    """
+    r1, r2 = None, None
+    data = list(map(lambda line: line.strip().split("-"), open(input_file_path, "r")))
+    for i in range(len(data)): data[i] = data[i][::-1] if data[i][1] == "start" or data[i][0] == "end" else data[i]
+    small_caves = set([x[0] for x in data if x[0] == x[0].lower()] + [x[1] for x in data if x[1] == x[1].lower()])
+    visited_caves, changed = [link for link in data if "start" in link], True
+    visited_caves_dict = defaultdict(int)
+    while changed:
+        changed = False
+        for _ in range(len(visited_caves)):
+            path = visited_caves.pop(0)
+            if "end" in path:
+                visited_caves.append(path)
+                continue
+
+            for _, new_el in [[a, b] if a == path[-1] else [b, a] for a, b in data if path[-1] in [a, b]]:
+                if (new_el in small_caves and new_el in path) and (new_el in ["start", "end"] or (Counter([sc for sc in path if sc in small_caves]).most_common()[0][1] > 1)):
+                    continue
+                new_path = path + [new_el]
+                if "_".join(new_path) not in visited_caves_dict:
+                    visited_caves.append(new_path)
+                    visited_caves_dict["_".join(new_path)] = -1
+                    changed = True
+    print(len(visited_caves))
+    return r1, r2
+
+
 if __name__ == "__main__":
     # print('DAY 1: ' + str(day1('input_1.txt')))
     # print('DAY 2: ' + str(day2('input_2.txt')))
@@ -156,4 +203,6 @@ if __name__ == "__main__":
     # print('DAY 7: ' + str(day7('input_7.txt')))
     # print('DAY 8: ' + str(day8('input_8.txt')))
     # print('DAY 9: ' + str(day9('input_9.txt')))
-    print('DAY 10: ' + str(day10('input_10.txt')))
+    # print('DAY 10: ' + str(day10('input_10.txt')))
+    # print('DAY 11: ' + str(day11('input_11.txt')))
+    print('DAY 12: ' + str(day12('input_12.txt')))
